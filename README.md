@@ -5,7 +5,8 @@ A lightweight, clean Chrome extension designed to save web links for later.
 
 ## Features
 
-* **Save Current Page:** Instantly save the tab you are currently viewing.
+* **Save Current Tab:** Instantly save the tab you are currently viewing.
+* **Save All Tabs:** Instantly save all tabs in the current window.
 * **Save target link:** Right-click any link on a webpage to save it.
 * **Save raw URL:** Paste raw URLs directly into the extension's input field.
 * **Reordering:** Easily rearrange your saved list to fit your reading priority.
@@ -32,8 +33,7 @@ TBD
 ## File Structure
 
 * `manifest.json` — Extension configuration and permissions setup.
-* `background.js` — Service worker managing context menus and link upgrading logic.
-* `content.js` — Lightweight content script for precision element targeting on right-clicks.
+* `background.js` — Service worker managing context menus and link adding logic.
 * `popup.html` — The HTML markup for the extension GUI.
-* `popup.js` — Handles user interactions, list rendering, and drag-and-drop sorting.
+* `popup.js` — Handles user interactions, list rendering, list editing and drag-and-drop sorting.
 * `popup.css` — Material Dark styling with bright orange accents.

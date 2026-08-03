@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const urlList = document.getElementById('url-list');
   const addBtn = document.getElementById('add-btn');
   const addCurrentTabBtn = document.getElementById('add-current-tab');
-  const addAllTabsBtn = document.getElementById('add-all-tabs'); // Added selector
+  const addAllTabsBtn = document.getElementById('add-all-tabs');
   const openAllBtn = document.getElementById('open-all-btn');
   const inputUrl = document.getElementById('manual-url');
 
@@ -39,9 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function normalizeUrl(urlString) {
     try {
-      const cleanUrl = urlString.split('&')[0];
-      const parsed = new URL(cleanUrl);
-
+      const parsed = new URL(urlString);
       const host = parsed.hostname.replace(/^www\./, '');
       let path = parsed.pathname;
 
@@ -51,8 +49,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
       return (host + path + parsed.search).toLowerCase();
     } catch (e) {
-      return urlString.split('&')[0].toLowerCase().replace(/^https?:\/\/(www\.)?/, '');
+      return urlString.toLowerCase().replace(/^https?:\/\/(www\.)?/, '');
     }
+  }
+
+  function isRestrictedUrl(url) {
+    if (!url) return true;
+    return (
+      url.startsWith('chrome://') ||
+      url.startsWith('edge://') ||
+      url.startsWith('about:') ||
+      url.startsWith('chrome-extension://') ||
+      url.startsWith('https://chrome.google.com/webstore')
+    );
   }
 
   function loadUrls() {
@@ -103,6 +112,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderList() {
     urlList.innerHTML = '';
+    const emptyState = document.getElementById('empty-state');
+
+    if (urlsArray.length === 0) {
+      if (emptyState) emptyState.style.display = 'block';
+      return;
+    } else {
+      if (emptyState) emptyState.style.display = 'none';
+    }
+
     urlsArray.forEach((item, index) => {
       const li = document.createElement('li');
       li.className = 'url-item';
@@ -123,22 +141,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const titleA = document.createElement('a');
       titleA.className = 'url-title url-link-clickable';
       titleA.href = item.url;
-      titleA.textContent = item.title;
-      titleA.title = item.title;
+
+      // If generic, use the URL as the display text; otherwise, use the title
+      const displayText = item.isGeneric ? item.url : item.title;
+      titleA.textContent = displayText;
+      titleA.title = displayText;
+
       titleA.addEventListener('click', handleLinkClick);
 
       headerDiv.appendChild(faviconImg);
       headerDiv.appendChild(titleA);
 
-      const linkA = document.createElement('a');
-      linkA.className = 'url-link';
-      linkA.href = item.url;
-      linkA.textContent = item.url;
-      linkA.title = item.url;
-      linkA.addEventListener('click', handleLinkClick);
-
       contentDiv.appendChild(headerDiv);
-      contentDiv.appendChild(linkA);
 
       const actionsDiv = document.createElement('div');
       actionsDiv.className = 'url-actions';
@@ -154,7 +168,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'action-btn delete-btn';
-      deleteBtn.textContent = 'Delete';
+      deleteBtn.innerHTML = '&#x2715;';
+      deleteBtn.title = 'Delete';
       deleteBtn.addEventListener('click', () => {
         urlsArray.splice(index, 1);
         renderList();
@@ -180,12 +195,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function handleAdd() {
     let url = inputUrl.value.trim();
     if (url) {
-      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      if (!/^https?:\/\//i.test(url)) {
         url = 'https://' + url;
       }
 
       urlsArray.push({
-        id: Date.now().toString(),
+        id: crypto.randomUUID(),
         url: url,
         title: "Saved Link",
         isGeneric: true
@@ -205,12 +220,12 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const activeTab = tabs[0];
       if (activeTab && activeTab.url) {
-        if (activeTab.url.startsWith('chrome://') || activeTab.url.startsWith('edge://')) {
+        if (isRestrictedUrl(activeTab.url)) {
           alert('Cannot save browser system pages.');
           return;
         }
         urlsArray.push({
-          id: Date.now().toString(),
+          id: crypto.randomUUID(),
           url: activeTab.url,
           title: activeTab.title || activeTab.url,
           isGeneric: false
@@ -227,17 +242,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!tabs || tabs.length === 0) return;
 
         let addedCount = 0;
-        const now = Date.now();
-
-        tabs.forEach((tab, index) => {
-          if (
-            tab.url &&
-            !tab.url.startsWith('chrome://') &&
-            !tab.url.startsWith('edge://') &&
-            !tab.url.startsWith('about:')
-          ) {
+        tabs.forEach((tab) => {
+          if (tab.url && !isRestrictedUrl(tab.url)) {
             urlsArray.push({
-              id: `${now}-${index}`,
+              id: crypto.randomUUID(),
               url: tab.url,
               title: tab.title || tab.url,
               isGeneric: false
@@ -256,6 +264,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   openAllBtn.addEventListener('click', () => {
     if (urlsArray.length === 0) return;
+
+    if (urlsArray.length > 15) {
+      if (!confirm(`Are you sure you want to open ${urlsArray.length} tabs at once?`)) {
+        return;
+      }
+    }
 
     urlsArray.forEach(item => {
       chrome.tabs.create({ url: item.url, active: false });
@@ -288,8 +302,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const dropIndex = parseInt(this.dataset.index);
     if (draggedIndex !== null && draggedIndex !== dropIndex) {
-      const item = urlsArray.splice(draggedIndex, 1)[0];
-      urlsArray.splice(dropIndex, 0, item);
+      const [movedItem] = urlsArray.splice(draggedIndex, 1);
+      urlsArray.splice(dropIndex, 0, movedItem);
       renderList();
       saveData();
     }

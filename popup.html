@@ -3,25 +3,28 @@
 
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="popup.css">
 </head>
 
 <body>
   <div class="app-container">
-    <header class="header">
-      <h1>For Later</h1>
-    </header>
-
     <div class="add-container">
-      <input type="text" id="manual-url" placeholder="Paste URL here..." autocomplete="off">
-      <button id="add-btn">Add</button>
+      <input type="text" id="manual-url" placeholder="Paste URL here..." autocomplete="off" spellcheck="false">
+      <button id="add-btn" class="btn-primary">Add</button>
     </div>
 
     <div class="button-row">
-      <button id="add-all-tabs">Add All Tabs</button>
-      <button id="add-current-tab">Add Current Tab</button>
+      <button id="add-current-tab" class="btn-secondary">Add Current Tab</button>
+      <button id="add-all-tabs" class="btn-secondary">Add All Tabs</button>
     </div>
-    <button id="open-all-btn" class="btn-secondary">Open All Links</button>
+
+    <button id="open-all-btn" class="btn-action-full">Open All Links</button>
+
+    <div id="empty-state" class="empty-state">
+      <p>No links saved yet.</p>
+      <span>Save pages or links to read them later!</span>
+    </div>
 
     <ul id="url-list">
       <!-- Links injected via JS -->
