@@ -1,0 +1,192 @@
+:root {
+  --bg-color: #121212;
+  --surface-color: #1e1e1e;
+  --primary-color: #FFA500;
+  /* Bright Orange */
+  --primary-variant: #FF8C00;
+  /* Darker Orange accent */
+  --text-primary: #e1e1e1;
+  --text-secondary: #a0a0a0;
+  --error-color: #cf6679;
+  --divider: rgba(255, 255, 255, 0.12);
+}
+
+body {
+  margin: 0;
+  font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  width: 455px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.app-container {
+  padding: 16px;
+}
+
+.header h1 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin: 0 0 16px 0;
+  color: var(--primary-color);
+  letter-spacing: 0.15px;
+}
+
+/* Input Area */
+.add-container {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+input[type="text"] {
+  flex-grow: 1;
+  background-color: var(--surface-color);
+  border: 1px solid var(--divider);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+input[type="text"]:focus {
+  border-color: var(--primary-color);
+}
+
+button {
+  background-color: var(--primary-color);
+  color: #000000;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-weight: 500;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1.25px;
+  transition: opacity 0.2s;
+}
+
+button:hover {
+  opacity: 0.8;
+}
+
+.btn-secondary {
+  width: 100%;
+  margin-bottom: 16px;
+  background-color: var(--surface-color);
+  color: var(--primary-color);
+  border: 1px solid var(--divider);
+}
+
+/* URL List */
+#url-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.url-item {
+  background-color: var(--surface-color);
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  cursor: grab;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.url-item.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+.url-item.drag-over {
+  border-top: 2px solid var(--primary-color);
+}
+
+.url-content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.url-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.favicon {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.url-title {
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Clickable Title & Link Styles */
+.url-link-clickable {
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.url-link-clickable:hover {
+  text-decoration: underline;
+  color: var(--primary-color);
+}
+
+.url-link {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.url-link:hover {
+  text-decoration: underline;
+  color: var(--primary-color);
+}
+
+/* Inline Actions */
+.url-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.action-btn {
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  letter-spacing: 0.5px;
+  text-transform: none;
+}
+
+.copy-btn {
+  background-color: #333333;
+  color: var(--text-primary);
+}
+
+.delete-btn {
+  background-color: transparent;
+  color: var(--error-color);
+  border: 1px solid var(--error-color);
+}
