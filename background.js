@@ -42,7 +42,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       let updated = false;
 
       urls = urls.map(item => {
-        if (item.isGeneric) {
+        if (item.isGeneric && item.url === tab.url) {
           updated = true;
           return {
             ...item,
