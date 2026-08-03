@@ -1,29 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <link rel="stylesheet" href="popup.css">
 </head>
+
 <body>
   <div class="app-container">
-    <header class="header">
-      <h1>For Later</h1>
-    </header>
+    <div class="header">
+      <h1>Read Later</h1>
+    </div>
 
     <div class="add-container">
-      <input type="text" id="manual-url" placeholder="Paste URL here..." autocomplete="off">
+      <input type="text" id="manual-url" placeholder="Paste URL here...">
       <button id="add-btn">Add</button>
     </div>
 
-    <button id="add-current-tab" class="btn-secondary">
-      + Save Current Tab
-    </button>
+    <button id="add-current-tab" class="btn-secondary">Add Current Tab</button>
+    <button id="open-all-btn" class="btn-secondary">Open All Links</button>
 
-    <ul id="url-list">
-      <!-- Links injected via JS -->
-    </ul>
+    <ul id="url-list"></ul>
   </div>
 
   <script src="popup.js"></script>
+  </script>
 </body>
+
 </html>

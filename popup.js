@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const urlList = document.getElementById('url-list');
   const addBtn = document.getElementById('add-btn');
   const addCurrentTabBtn = document.getElementById('add-current-tab');
+  const openAllBtn = document.getElementById('open-all-btn');
   const inputUrl = document.getElementById('manual-url');
 
   let urlsArray = [];
@@ -33,7 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
       faviconImg.src = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(item.url)}&size=32`;
       faviconImg.alt = '';
 
-      // Make title clickable by using an anchor tag styled to match
       const titleA = document.createElement('a');
       titleA.className = 'url-title url-link-clickable';
       titleA.href = item.url;
@@ -129,6 +129,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         saveData();
       }
+    });
+  });
+
+  openAllBtn.addEventListener('click', () => {
+    if (urlsArray.length === 0) return;
+
+    urlsArray.forEach(item => {
+      chrome.tabs.create({ url: item.url, active: false });
     });
   });
 
