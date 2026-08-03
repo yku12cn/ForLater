@@ -2,17 +2,103 @@ document.addEventListener('DOMContentLoaded', () => {
   const urlList = document.getElementById('url-list');
   const addBtn = document.getElementById('add-btn');
   const addCurrentTabBtn = document.getElementById('add-current-tab');
+  const addAllTabsBtn = document.getElementById('add-all-tabs'); // Added selector
   const openAllBtn = document.getElementById('open-all-btn');
   const inputUrl = document.getElementById('manual-url');
 
   let urlsArray = [];
   let draggedIndex = null;
 
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName === 'local' && changes.urls) {
+      const newUrls = changes.urls.newValue || [];
+      if (JSON.stringify(newUrls) !== JSON.stringify(urlsArray)) {
+        urlsArray = newUrls;
+        renderList();
+      }
+    }
+  });
+
+  chrome.tabs.onActivated.addListener(() => {
+    inspectActiveTabForGenericLinks();
+  });
+
+  chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    if (tab.active && (changeInfo.status === 'complete' || changeInfo.title)) {
+      inspectActiveTabForGenericLinks(tab);
+    }
+  });
+
+  function handleLinkClick(e) {
+    e.preventDefault();
+    const targetUrl = e.currentTarget.getAttribute('href');
+    if (targetUrl) {
+      chrome.tabs.create({ url: targetUrl, active: true });
+    }
+  }
+
+  function normalizeUrl(urlString) {
+    try {
+      const cleanUrl = urlString.split('&')[0];
+      const parsed = new URL(cleanUrl);
+
+      const host = parsed.hostname.replace(/^www\./, '');
+      let path = parsed.pathname;
+
+      if (path.endsWith('/') && path.length > 1) {
+        path = path.slice(0, -1);
+      }
+
+      return (host + path + parsed.search).toLowerCase();
+    } catch (e) {
+      return urlString.split('&')[0].toLowerCase().replace(/^https?:\/\/(www\.)?/, '');
+    }
+  }
+
   function loadUrls() {
     chrome.storage.local.get({ urls: [] }, (data) => {
-      urlsArray = data.urls;
+      urlsArray = data.urls || [];
       renderList();
+      inspectActiveTabForGenericLinks();
     });
+  }
+
+  function inspectActiveTabForGenericLinks(activeTab = null) {
+    if (!urlsArray.some(item => item.isGeneric)) return;
+
+    const processTab = (tab) => {
+      if (!tab || !tab.url || !tab.title) return;
+
+      let updated = false;
+      const activeBaseUrl = normalizeUrl(tab.url);
+
+      urlsArray = urlsArray.map(item => {
+        if (item.isGeneric && normalizeUrl(item.url) === activeBaseUrl) {
+          updated = true;
+          return {
+            ...item,
+            title: tab.title,
+            isGeneric: false
+          };
+        }
+        return item;
+      });
+
+      if (updated) {
+        renderList();
+        saveData();
+      }
+    };
+
+    if (activeTab) {
+      processTab(activeTab);
+    } else {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (!chrome.runtime.lastError && tabs && tabs[0]) {
+          processTab(tabs[0]);
+        }
+      });
+    }
   }
 
   function renderList() {
@@ -37,9 +123,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const titleA = document.createElement('a');
       titleA.className = 'url-title url-link-clickable';
       titleA.href = item.url;
-      titleA.target = '_blank';
       titleA.textContent = item.title;
       titleA.title = item.title;
+      titleA.addEventListener('click', handleLinkClick);
 
       headerDiv.appendChild(faviconImg);
       headerDiv.appendChild(titleA);
@@ -47,9 +133,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const linkA = document.createElement('a');
       linkA.className = 'url-link';
       linkA.href = item.url;
-      linkA.target = '_blank';
       linkA.textContent = item.url;
       linkA.title = item.url;
+      linkA.addEventListener('click', handleLinkClick);
 
       contentDiv.appendChild(headerDiv);
       contentDiv.appendChild(linkA);
@@ -71,6 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
       deleteBtn.textContent = 'Delete';
       deleteBtn.addEventListener('click', () => {
         urlsArray.splice(index, 1);
+        renderList();
         saveData();
       });
 
@@ -103,6 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
         title: "Saved Link",
         isGeneric: true
       });
+      renderList();
       saveData();
       inputUrl.value = '';
     }
@@ -127,10 +215,44 @@ document.addEventListener('DOMContentLoaded', () => {
           title: activeTab.title || activeTab.url,
           isGeneric: false
         });
+        renderList();
         saveData();
       }
     });
   });
+
+  if (addAllTabsBtn) {
+    addAllTabsBtn.addEventListener('click', () => {
+      chrome.tabs.query({ currentWindow: true }, (tabs) => {
+        if (!tabs || tabs.length === 0) return;
+
+        let addedCount = 0;
+        const now = Date.now();
+
+        tabs.forEach((tab, index) => {
+          if (
+            tab.url &&
+            !tab.url.startsWith('chrome://') &&
+            !tab.url.startsWith('edge://') &&
+            !tab.url.startsWith('about:')
+          ) {
+            urlsArray.push({
+              id: `${now}-${index}`,
+              url: tab.url,
+              title: tab.title || tab.url,
+              isGeneric: false
+            });
+            addedCount++;
+          }
+        });
+
+        if (addedCount > 0) {
+          renderList();
+          saveData();
+        }
+      });
+    });
+  }
 
   openAllBtn.addEventListener('click', () => {
     if (urlsArray.length === 0) return;
@@ -168,6 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (draggedIndex !== null && draggedIndex !== dropIndex) {
       const item = urlsArray.splice(draggedIndex, 1)[0];
       urlsArray.splice(dropIndex, 0, item);
+      renderList();
       saveData();
     }
   }
@@ -177,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function saveData() {
-    chrome.storage.local.set({ urls: urlsArray }, () => renderList());
+    chrome.storage.local.set({ urls: urlsArray });
   }
 
   loadUrls();

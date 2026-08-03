@@ -16,9 +16,10 @@ body {
   font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: var(--bg-color);
   color: var(--text-primary);
-  width: 455px;
-  max-height: 500px;
-  overflow-y: auto;
+  width: 100%;
+  min-width: 250px;
+  min-height: 100vh;
+  box-sizing: border-box;
 }
 
 .app-container {
@@ -73,12 +74,23 @@ button:hover {
   opacity: 0.8;
 }
 
-.btn-secondary {
-  width: 100%;
+/* Button Row (Add Current Tab & Add All Tabs) */
+.button-row {
+  display: flex;
+  gap: 8px;
   margin-bottom: 16px;
+}
+
+.btn-secondary {
+  flex: 1;
   background-color: var(--surface-color);
   color: var(--primary-color);
   border: 1px solid var(--divider);
+  padding: 8px 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* URL List */

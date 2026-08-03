@@ -12,6 +12,10 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
+chrome.sidePanel
+  .setPanelBehavior({ openPanelOnActionClick: true })
+  .catch((error) => console.error(error));
+
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "ForLater-page") {
     saveUrl(info.pageUrl, tab.title, false);
@@ -19,43 +23,46 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   else if (info.menuItemId === "ForLater-link") {
     const linkUrl = info.linkUrl;
 
-    chrome.tabs.sendMessage(tab.id, { action: "getTargetTitle", linkUrl: linkUrl }, (response) => {
-      let title = null;
-      if (chrome.runtime.lastError) {
-        title = info.selectionText;
-      } else if (response && response.title) {
-        title = response.title;
-      }
-      if (!title) {
-        saveUrl(linkUrl, "Saved Link", true);
-      } else {
-        saveUrl(linkUrl, title, false);
-      }
-    });
-  }
-});
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: (urlToFind) => {
+        const extractText = (el) => {
+          if (!el) return null;
+          let text = (el.innerText || el.getAttribute('aria-label') || el.title || "").trim();
+          if (!text) {
+            const img = el.querySelector('img');
+            if (img) text = (img.alt || img.title || "").trim();
+          }
+          return text || null;
+        };
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete' && tab.url && tab.title) {
-    chrome.storage.local.get({ urls: [] }, (data) => {
-      let urls = data.urls;
-      let updated = false;
+        // Find the element currently in the :hover state
+        const hoveredElements = Array.from(document.querySelectorAll(':hover')).reverse();
 
-      urls = urls.map(item => {
-        if (item.isGeneric && item.url === tab.url) {
-          updated = true;
-          return {
-            ...item,
-            title: tab.title,
-            isGeneric: false
-          };
+        for (const hoveredEl of hoveredElements) {
+          const anchor = hoveredEl.closest('a');
+          if (anchor && anchor.href === urlToFind) {
+            const hoverText = extractText(anchor);
+            if (hoverText) return hoverText;
+          }
         }
-        return item;
-      });
 
-      if (updated) {
-        chrome.storage.local.set({ urls });
+        return null;
+      },
+      args: [linkUrl]
+    }, (injectionResults) => {
+      let title = info.selectionText;
+
+      if (!chrome.runtime.lastError && injectionResults && injectionResults[0]?.result) {
+        title = injectionResults[0].result;
       }
+
+      if (title) {
+        saveUrl(linkUrl, title, false);
+      } else {
+        saveUrl(linkUrl, "Saved Link", true);
+      }
+
     });
   }
 });
