@@ -60,7 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
       url.startsWith('edge://') ||
       url.startsWith('about:') ||
       url.startsWith('chrome-extension://') ||
-      url.startsWith('https://chrome.google.com/webstore')
     );
   }
 
