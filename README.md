@@ -1,3 +1,4 @@
+![ICON](./icons/icon128.png)
 # ForLater Extension
 
 A lightweight, clean Chrome extension designed to save web links for later.
