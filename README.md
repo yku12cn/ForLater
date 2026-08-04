@@ -18,7 +18,7 @@ A lightweight, clean Chrome extension designed to save web links for later.
 
 ### From Chrome Store
 
-TBD
+1. Install [ForLater](https://chromewebstore.google.com/detail/ggammfdodcfmcfnnfgnlmikhpobnnkin)
 
 ### Loacl Installation
 
