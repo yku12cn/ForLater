@@ -39,7 +39,7 @@
 
 ```text
 ForLater/
-└── Extension               # Main folder for the extension
+└── extension               # Main folder for the extension
     ├── manifest.json       # Extension configuration (Manifest V3)
     ├── background.js       # Service worker managing context menus and link adding logic
     ├── popup.html          # Main GUI HTML markup
