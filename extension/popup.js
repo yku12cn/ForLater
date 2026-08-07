@@ -148,18 +148,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const titleA = template.querySelector('.url-title');
     titleA.href = item.url;
+
     const displayText = item.isGeneric ? item.url : item.title;
     titleA.textContent = displayText;
     titleA.title = displayText;
     titleA.addEventListener('click', handleLinkClick);
-
-    const urlSpan = template.querySelector('.url-link');
-    if (!item.isGeneric) {
-      urlSpan.textContent = item.url;
-      urlSpan.title = item.url;
-    } else {
-      urlSpan.remove();
-    }
 
     const copyBtn = template.querySelector('.copy-btn');
     copyBtn.addEventListener('click', (e) => {
@@ -270,7 +263,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!item) return;
 
       const titleA = li.querySelector('.url-title');
-      const urlLinkSpan = li.querySelector('.url-link');
       const titleText = item.isGeneric ? item.url : item.title;
 
       const matches = query && (
@@ -281,11 +273,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (matches) {
         li.classList.add('highlighted');
         if (titleA) highlightTextNode(titleA, titleText, query);
-        if (urlLinkSpan) highlightTextNode(urlLinkSpan, item.url, query);
       } else {
         li.classList.remove('highlighted');
         if (titleA) titleA.textContent = titleText;
-        if (urlLinkSpan) urlLinkSpan.textContent = item.url;
       }
     });
   }
