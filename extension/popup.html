@@ -27,9 +27,50 @@
     </div>
 
     <ul id="url-list">
-      <!-- Links injected via JS -->
     </ul>
+
+    <div class="search-container">
+      <div class="search-input-wrapper">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="search-input" placeholder="Search saved links..." autocomplete="off" spellcheck="false">
+      </div>
+    </div>
   </div>
+
+  <template id="url-card-template">
+    <div class="url-content">
+      <div class="url-header">
+        <img class="favicon" src="" alt="">
+        <a class="url-title url-link-clickable" href=""></a>
+      </div>
+      <span class="url-link"></span>
+    </div>
+    <div class="url-actions">
+      <button class="action-btn copy-btn">Copy</button>
+      <button class="action-btn delete-btn" title="Delete">&#x2715;</button>
+    </div>
+  </template>
+
+  <template id="url-edit-template">
+    <div class="edit-form">
+      <div class="edit-input-group">
+        <span class="edit-label">Text</span>
+        <input type="text" class="edit-input text-input" placeholder="e.g. Documentation, Article Title...">
+      </div>
+      <div class="edit-input-group">
+        <span class="edit-label">URL</span>
+        <input type="text" class="edit-input url-input">
+      </div>
+      <div class="edit-actions">
+        <button class="btn-cancel">Cancel</button>
+        <button class="btn-save">Save</button>
+      </div>
+    </div>
+  </template>
 
   <script src="popup.js"></script>
 </body>

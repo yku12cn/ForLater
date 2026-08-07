@@ -78,7 +78,7 @@ function isRestrictedUrl(url) {
     url.startsWith("chrome://") ||
     url.startsWith("edge://") ||
     url.startsWith("about:") ||
-    url.startsWith("chrome-extension://") ||
+    url.startsWith("chrome-extension://")
   );
 }
 

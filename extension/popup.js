@@ -5,9 +5,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const addAllTabsBtn = document.getElementById('add-all-tabs');
   const openAllBtn = document.getElementById('open-all-btn');
   const inputUrl = document.getElementById('manual-url');
+  const searchInput = document.getElementById('search-input');
 
   let urlsArray = [];
-  let draggedIndex = null;
+  let draggedElement = null;
+  let editingId = null;
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
     if (areaName === 'local' && changes.urls) {
@@ -59,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
       url.startsWith('chrome://') ||
       url.startsWith('edge://') ||
       url.startsWith('about:') ||
-      url.startsWith('chrome-extension://') ||
+      url.startsWith('chrome-extension://')
     );
   }
 
@@ -120,75 +122,201 @@ document.addEventListener('DOMContentLoaded', () => {
       if (emptyState) emptyState.style.display = 'none';
     }
 
-    urlsArray.forEach((item, index) => {
+    urlsArray.forEach((item) => {
       const li = document.createElement('li');
       li.className = 'url-item';
-      li.draggable = true;
-      li.dataset.index = index;
+      li.dataset.id = item.id;
 
-      const contentDiv = document.createElement('div');
-      contentDiv.className = 'url-content';
-
-      const headerDiv = document.createElement('div');
-      headerDiv.className = 'url-header';
-
-      const faviconImg = document.createElement('img');
-      faviconImg.className = 'favicon';
-      faviconImg.src = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(item.url)}&size=32`;
-      faviconImg.alt = '';
-
-      const titleA = document.createElement('a');
-      titleA.className = 'url-title url-link-clickable';
-      titleA.href = item.url;
-
-      // If generic, use the URL as the display text; otherwise, use the title
-      const displayText = item.isGeneric ? item.url : item.title;
-      titleA.textContent = displayText;
-      titleA.title = displayText;
-
-      titleA.addEventListener('click', handleLinkClick);
-
-      headerDiv.appendChild(faviconImg);
-      headerDiv.appendChild(titleA);
-
-      contentDiv.appendChild(headerDiv);
-
-      const actionsDiv = document.createElement('div');
-      actionsDiv.className = 'url-actions';
-
-      const copyBtn = document.createElement('button');
-      copyBtn.className = 'action-btn copy-btn';
-      copyBtn.textContent = 'Copy';
-      copyBtn.addEventListener('click', () => {
-        navigator.clipboard.writeText(item.url);
-        copyBtn.textContent = 'Copied!';
-        setTimeout(() => copyBtn.textContent = 'Copy', 1500);
-      });
-
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'action-btn delete-btn';
-      deleteBtn.innerHTML = '&#x2715;';
-      deleteBtn.title = 'Delete';
-      deleteBtn.addEventListener('click', () => {
-        urlsArray.splice(index, 1);
-        renderList();
-        saveData();
-      });
-
-      actionsDiv.appendChild(copyBtn);
-      actionsDiv.appendChild(deleteBtn);
-
-      li.appendChild(contentDiv);
-      li.appendChild(actionsDiv);
-
-      li.addEventListener('dragstart', handleDragStart);
-      li.addEventListener('dragover', handleDragOver);
-      li.addEventListener('dragleave', handleDragLeave);
-      li.addEventListener('drop', handleDrop);
-      li.addEventListener('dragend', handleDragEnd);
+      if (editingId === item.id) {
+        renderEditCard(li, item);
+      } else {
+        renderNormalCard(li, item);
+      }
 
       urlList.appendChild(li);
     });
+
+    applySearchFilter();
+  }
+
+  function renderNormalCard(li, item) {
+    li.draggable = true;
+    const template = document.getElementById('url-card-template').content.cloneNode(true);
+
+    const faviconImg = template.querySelector('.favicon');
+    faviconImg.src = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(item.url)}&size=32`;
+
+    const titleA = template.querySelector('.url-title');
+    titleA.href = item.url;
+    const displayText = item.isGeneric ? item.url : item.title;
+    titleA.textContent = displayText;
+    titleA.title = displayText;
+    titleA.addEventListener('click', handleLinkClick);
+
+    const urlSpan = template.querySelector('.url-link');
+    if (!item.isGeneric) {
+      urlSpan.textContent = item.url;
+      urlSpan.title = item.url;
+    } else {
+      urlSpan.remove();
+    }
+
+    const copyBtn = template.querySelector('.copy-btn');
+    copyBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      navigator.clipboard.writeText(item.url);
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => copyBtn.textContent = 'Copy', 1500);
+    });
+
+    const deleteBtn = template.querySelector('.delete-btn');
+    deleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const itemIdx = urlsArray.findIndex(u => u.id === item.id);
+      if (itemIdx !== -1) {
+        urlsArray.splice(itemIdx, 1);
+        renderList();
+        saveData();
+      }
+    });
+
+    li.appendChild(template);
+
+    li.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      editingId = item.id;
+      renderList();
+    });
+
+    li.addEventListener('dragstart', handleDragStart);
+    li.addEventListener('dragover', handleDragOver);
+    li.addEventListener('drop', handleDrop);
+    li.addEventListener('dragend', handleDragEnd);
+  }
+
+  function renderEditCard(li, item) {
+    li.classList.add('editing');
+    li.draggable = false;
+
+    const template = document.getElementById('url-edit-template').content.cloneNode(true);
+    const labelInput = template.querySelector('.text-input');
+    const urlInput = template.querySelector('.url-input');
+    const cancelBtn = template.querySelector('.btn-cancel');
+    const saveBtn = template.querySelector('.btn-save');
+
+    labelInput.value = item.isGeneric ? '' : item.title;
+    urlInput.value = item.url;
+
+    cancelBtn.addEventListener('click', () => {
+      editingId = null;
+      renderList();
+    });
+
+    const performSave = () => {
+      let trimmedLabel = labelInput.value.trim();
+      let trimmedUrl = urlInput.value.trim();
+
+      if (!trimmedUrl) return;
+
+      if (!/^https?:\/\//i.test(trimmedUrl)) {
+        trimmedUrl = 'https://' + trimmedUrl;
+      }
+
+      const itemIdx = urlsArray.findIndex(u => u.id === item.id);
+      if (itemIdx !== -1) {
+        if (trimmedLabel === '') {
+          urlsArray[itemIdx].title = 'Saved Link';
+          urlsArray[itemIdx].isGeneric = true;
+        } else {
+          urlsArray[itemIdx].title = trimmedLabel;
+          urlsArray[itemIdx].isGeneric = false;
+        }
+        urlsArray[itemIdx].url = trimmedUrl;
+
+        editingId = null;
+        renderList();
+        saveData();
+      }
+    };
+
+    saveBtn.addEventListener('click', performSave);
+
+    labelInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') performSave();
+      if (e.key === 'Escape') { editingId = null; renderList(); }
+    });
+
+    urlInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') performSave();
+      if (e.key === 'Escape') { editingId = null; renderList(); }
+    });
+
+    li.appendChild(template);
+
+    setTimeout(() => labelInput.focus(), 50);
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', applySearchFilter);
+  }
+
+  function applySearchFilter() {
+    const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    const items = urlList.querySelectorAll('.url-item:not(.editing)');
+
+    items.forEach(li => {
+      const id = li.dataset.id;
+      const item = urlsArray.find(u => u.id === id);
+      if (!item) return;
+
+      const titleA = li.querySelector('.url-title');
+      const urlLinkSpan = li.querySelector('.url-link');
+      const titleText = item.isGeneric ? item.url : item.title;
+
+      const matches = query && (
+        item.title.toLowerCase().includes(query) ||
+        item.url.toLowerCase().includes(query)
+      );
+
+      if (matches) {
+        li.classList.add('highlighted');
+        if (titleA) highlightTextNode(titleA, titleText, query);
+        if (urlLinkSpan) highlightTextNode(urlLinkSpan, item.url, query);
+      } else {
+        li.classList.remove('highlighted');
+        if (titleA) titleA.textContent = titleText;
+        if (urlLinkSpan) urlLinkSpan.textContent = item.url;
+      }
+    });
+  }
+
+  function highlightTextNode(element, text, query) {
+    if (!query) {
+      element.textContent = text;
+      return;
+    }
+    const lowerText = text.toLowerCase();
+    element.innerHTML = '';
+
+    let lastIdx = 0;
+    let pos = lowerText.indexOf(query);
+
+    while (pos !== -1) {
+      if (pos > lastIdx) {
+        element.appendChild(document.createTextNode(text.substring(lastIdx, pos)));
+      }
+      const mark = document.createElement('mark');
+      mark.className = 'search-match';
+      mark.textContent = text.substring(pos, pos + query.length);
+      element.appendChild(mark);
+
+      lastIdx = pos + query.length;
+      pos = lowerText.indexOf(query, lastIdx);
+    }
+
+    if (lastIdx < text.length) {
+      element.appendChild(document.createTextNode(text.substring(lastIdx)));
+    }
   }
 
   function handleAdd() {
@@ -275,46 +403,92 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  function saveData() {
+    chrome.storage.local.set({ urls: urlsArray });
+  }
+
   function handleDragStart(e) {
-    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A') {
+    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || e.target.tagName === 'INPUT') {
       e.preventDefault();
       return;
     }
-    draggedIndex = parseInt(this.dataset.index);
+    draggedElement = this;
     e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', '');
     setTimeout(() => this.classList.add('dragging'), 0);
   }
 
   function handleDragOver(e) {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    this.classList.add('drag-over');
-  }
 
-  function handleDragLeave() {
-    this.classList.remove('drag-over');
+    if (!draggedElement || draggedElement === this) return;
+
+    const items = Array.from(urlList.children);
+    const draggedIdx = items.indexOf(draggedElement);
+    const targetIdx = items.indexOf(this);
+
+    if (draggedIdx === -1 || targetIdx === -1 || draggedIdx === targetIdx) return;
+
+    const rect = this.getBoundingClientRect();
+    const offsetY = e.clientY - rect.top;
+    const thresholdFraction = 0.65;
+
+    if (draggedIdx < targetIdx) {
+      if (offsetY < rect.height * thresholdFraction) return;
+    } else {
+      if (offsetY > rect.height * (1 - thresholdFraction)) return;
+    }
+
+    const firstPositions = new Map();
+    items.forEach(item => {
+      firstPositions.set(item, item.getBoundingClientRect().top);
+    });
+
+    if (draggedIdx < targetIdx) {
+      this.after(draggedElement);
+    } else {
+      this.before(draggedElement);
+    }
+
+    const updatedItems = Array.from(urlList.children);
+    updatedItems.forEach(item => {
+      if (item === draggedElement) return;
+
+      const firstTop = firstPositions.get(item);
+      const lastTop = item.getBoundingClientRect().top;
+      const deltaY = firstTop - lastTop;
+
+      if (deltaY !== 0) {
+        item.style.transition = 'none';
+        item.style.transform = `translateY(${deltaY}px)`;
+
+        item.offsetHeight;
+        item.style.transition = 'transform 0.2s ease';
+        item.style.transform = '';
+      }
+    });
   }
 
   function handleDrop(e) {
     e.preventDefault();
-    this.classList.remove('drag-over');
-
-    const dropIndex = parseInt(this.dataset.index);
-    if (draggedIndex !== null && draggedIndex !== dropIndex) {
-      const [movedItem] = urlsArray.splice(draggedIndex, 1);
-      urlsArray.splice(dropIndex, 0, movedItem);
-      renderList();
-      saveData();
-    }
   }
 
   function handleDragEnd() {
     this.classList.remove('dragging');
-  }
+    draggedElement = null;
 
-  function saveData() {
-    chrome.storage.local.set({ urls: urlsArray });
+    const newUrls = [];
+    Array.from(urlList.children).forEach(li => {
+      const id = li.dataset.id;
+      const item = urlsArray.find(u => u.id === id);
+      if (item) newUrls.push(item);
+    });
+
+    urlsArray = newUrls;
+    saveData();
   }
 
   loadUrls();
+
 });

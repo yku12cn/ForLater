@@ -1,16 +1,33 @@
 :root {
-  --bg-color: #121212;
-  --surface-color: #1e1e1e;
-  --surface-hover: #262626;
+  --bg-color: #f8f9fa;
+  --surface-color: #ffffff;
+  --surface-hover: #f1f3f4;
   --primary-color: #ff9800;
-  --primary-hover: #f57c00;
-  --text-primary: #f0f0f0;
-  --text-secondary: #a0a0a0;
-  --error-color: #ff5252;
-  --error-hover-bg: rgba(255, 82, 82, 0.1);
-  --border-color: rgba(255, 255, 255, 0.08);
+  --primary-hover: #e65100;
+  --text-primary: #202124;
+  --text-secondary: #5f6368;
+  --error-color: #d93025;
+  --error-hover-bg: rgba(217, 48, 37, 0.1);
+  --border-color: rgba(0, 0, 0, 0.12);
+  --highlight-bg: #fff3cd;
   --radius-sm: 6px;
   --radius-md: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #121212;
+    --surface-color: #1e1e1e;
+    --surface-hover: #262626;
+    --primary-color: #ff9800;
+    --primary-hover: #f57c00;
+    --text-primary: #f0f0f0;
+    --text-secondary: #a0a0a0;
+    --error-color: #ff5252;
+    --error-hover-bg: rgba(255, 82, 82, 0.1);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --highlight-bg: rgba(255, 152, 0, 0.22);
+  }
 }
 
 * {
@@ -32,9 +49,9 @@ body {
   padding: 12px;
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
 }
 
-/* Input Area */
 .add-container {
   display: flex;
   gap: 8px;
@@ -59,10 +76,9 @@ input[type="text"]::placeholder {
 
 input[type="text"]:focus {
   border-color: var(--primary-color);
-  background-color: #242424;
+  background-color: var(--surface-hover);
 }
 
-/* Base Button Styles */
 button {
   font-family: inherit;
   font-size: 0.8rem;
@@ -85,7 +101,6 @@ button {
   background-color: var(--primary-hover);
 }
 
-/* Button Row */
 .button-row {
   display: flex;
   gap: 8px;
@@ -103,25 +118,25 @@ button {
 
 .btn-secondary:hover {
   background-color: var(--surface-hover);
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(128, 128, 128, 0.25);
 }
 
 .btn-action-full {
   width: 100%;
-  background-color: transparent;
-  color: var(--primary-color);
-  border: 1px solid rgba(255, 152, 0, 0.3);
+  background-color: rgba(255, 152, 0, 0.1);
+  color: var(--btn-action-color);
+  border: 1px solid var(--btn-action-border);
   padding: 8px;
   font-size: 0.78rem;
+  font-weight: 600;
   margin-bottom: 12px;
 }
 
 .btn-action-full:hover {
-  background-color: rgba(255, 152, 0, 0.08);
-  border-color: var(--primary-color);
+  background-color: rgba(255, 152, 0, 0.2);
+  border-color: var(--btn-action-color);
 }
 
-/* Empty State */
 .empty-state {
   display: none;
   text-align: center;
@@ -143,13 +158,6 @@ button {
   color: var(--text-secondary);
 }
 
-/* Show empty state when list is empty */
-#url-list:empty+.empty-state,
-#url-list:has(> :nth-child(0))+.empty-state {
-  display: block;
-}
-
-/* URL List */
 #url-list {
   list-style: none;
   padding: 0;
@@ -157,6 +165,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex-grow: 1;
 }
 
 .url-item {
@@ -169,21 +178,99 @@ button {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, padding 0.2s ease;
+  will-change: transform;
 }
 
 .url-item:hover {
   background-color: var(--surface-hover);
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(128, 128, 128, 0.3);
 }
 
 .url-item.dragging {
-  opacity: 0.4;
+  opacity: 0.3;
   cursor: grabbing;
 }
 
-.url-item.drag-over {
-  border-top: 2px solid var(--primary-color);
+.url-item.editing {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 14px 12px;
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  cursor: default;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.edit-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.edit-label {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.edit-input {
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+}
+
+.edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.btn-save {
+  background-color: var(--primary-color);
+  color: #121212;
+  padding: 5px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.btn-save:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn-cancel {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  padding: 5px 10px;
+  font-size: 0.75rem;
+}
+
+.btn-cancel:hover {
+  background-color: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.url-item.highlighted {
+  border-color: var(--primary-color);
+  background-color: var(--highlight-bg);
+  box-shadow: 0 0 0 1px var(--primary-color);
+}
+
+mark.search-match {
+  background-color: var(--primary-color);
+  color: #121212;
+  border-radius: 2px;
+  padding: 0 2px;
 }
 
 .url-content {
@@ -197,7 +284,7 @@ button {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 0; /* Updated from 2px to 0 for vertical centering */
+  margin-bottom: 0;
 }
 
 .url-header:has(+ .url-link) {
@@ -231,18 +318,13 @@ button {
 .url-link {
   font-size: 0.72rem;
   color: var(--text-secondary);
-  text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   margin-top: 2px;
+  user-select: none;
 }
 
-.url-link:hover {
-  text-decoration: underline;
-}
-
-/* Inline Action Buttons */
 .url-actions {
   display: flex;
   gap: 4px;
@@ -256,22 +338,56 @@ button {
 }
 
 .copy-btn {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--surface-color);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
 }
 
 .copy-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--surface-hover);
 }
 
 .delete-btn {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--surface-color);
   color: var(--error-color);
   border: 1px solid var(--border-color);
 }
 
 .delete-btn:hover {
   background-color: var(--error-hover-bg);
-  border-color: rgba(255, 82, 82, 0.3);
+  border-color: rgba(217, 48, 37, 0.3);
+}
+
+.search-container {
+  margin-top: 16px;
+  margin-left: -12px;
+  margin-right: -12px;
+  margin-bottom: -12px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--border-color);
+  position: sticky;
+  bottom: -12px;
+  background-color: var(--bg-color);
+  z-index: 10;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  color: var(--text-secondary);
+  pointer-events: none;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.search-input-wrapper input {
+  width: 100%;
+  padding-left: 32px;
 }

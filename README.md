@@ -15,6 +15,8 @@
 * **Save target link:** Right-click any link on a webpage to save it.
 * **Save raw URL:** Paste raw URLs directly into the extension's input field.
 * **Reordering:** Easily rearrange your saved list to fit your reading priority.
+* **Editing:** Rightclick to edit the added URLs.
+* **Searching:** Search keywords in the URLs added.
 * **Quick Actions:** Copy URLs to your clipboard or delete items with a single click.
 
 ---
