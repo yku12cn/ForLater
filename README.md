@@ -41,6 +41,10 @@
 
 ```text
 ForLater/
+├── chrome_store            # Chrome store display materials
+|   ├── icon48.png
+|   ├── marquee_promo_tile.html
+|   └── Small_promo_tile.png
 └── extension               # Main folder for the extension
     ├── manifest.json       # Extension configuration (Manifest V3)
     ├── background.js       # Service worker managing context menus and link adding logic
