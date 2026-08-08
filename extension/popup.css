@@ -2,14 +2,21 @@
   --bg-color: #f8f9fa;
   --surface-color: #ffffff;
   --surface-hover: #f1f3f4;
+
+  --input-bg: #e8eaed;
+  --btn-bg: #e8eaed;
+  --btn-hover: #dadce0;
+
   --primary-color: #ff9800;
   --primary-hover: #e65100;
+
   --text-primary: #202124;
   --text-secondary: #5f6368;
+
   --error-color: #d93025;
   --error-hover-bg: rgba(217, 48, 37, 0.1);
-  --border-color: rgba(0, 0, 0, 0.12);
   --highlight-bg: #fff3cd;
+
   --radius-sm: 6px;
   --radius-md: 10px;
 }
@@ -18,14 +25,18 @@
   :root {
     --bg-color: #121212;
     --surface-color: #1e1e1e;
-    --surface-hover: #262626;
+    --surface-hover: #2a2a2a;
+
+    --input-bg: #2a2a2a;
+    --btn-bg: #2a2a2a;
+    --btn-hover: #3a3a3a;
+
     --primary-color: #ff9800;
     --primary-hover: #f57c00;
     --text-primary: #f0f0f0;
     --text-secondary: #a0a0a0;
     --error-color: #ff5252;
-    --error-hover-bg: rgba(255, 82, 82, 0.1);
-    --border-color: rgba(255, 255, 255, 0.08);
+    --error-hover-bg: rgba(255, 82, 82, 0.15);
     --highlight-bg: rgba(255, 152, 0, 0.22);
   }
 }
@@ -41,33 +52,64 @@ body {
   color: var(--text-primary);
   width: 100%;
   min-width: 320px;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
-.app-container {
+.actions-container {
   padding: 12px;
+  padding-bottom: 10px;
+  z-index: 10;
+  box-shadow: 0 3px 6px var(--bg-color);;
+}
+
+.app-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .add-container {
   display: flex;
   gap: 8px;
   margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.button-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.btn-action-full {
+  width: 100%;
+  background-color: rgba(255, 152, 0, 0.2);
+  color: var(--primary-hover);
+  border: none;
+  padding: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.btn-action-full:hover {
+  background-color: rgba(255, 152, 0, 0.3);
 }
 
 input[type="text"] {
   flex-grow: 1;
-  background-color: var(--surface-color);
-  border: 1px solid var(--border-color);
+  background-color: var(--input-bg);
+  border: none;
   color: var(--text-primary);
   padding: 9px 12px;
   border-radius: var(--radius-sm);
   font-size: 0.85rem;
   outline: none;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 input[type="text"]::placeholder {
@@ -75,8 +117,8 @@ input[type="text"]::placeholder {
 }
 
 input[type="text"]:focus {
-  border-color: var(--primary-color);
-  background-color: var(--surface-hover);
+  background-color: var(--surface-color);
+  box-shadow: 0 0 0 2px var(--primary-color);
 }
 
 button {
@@ -101,49 +143,22 @@ button {
   background-color: var(--primary-hover);
 }
 
-.button-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
 .btn-secondary {
   flex: 1;
-  background-color: var(--surface-color);
+  background-color: var(--btn-bg);
   color: var(--text-primary);
-  border: 1px solid var(--border-color);
   padding: 8px 10px;
   font-size: 0.78rem;
 }
 
 .btn-secondary:hover {
-  background-color: var(--surface-hover);
-  border-color: rgba(128, 128, 128, 0.25);
-}
-
-.btn-action-full {
-  width: 100%;
-  background-color: rgba(255, 152, 0, 0.2);
-  color: var(--btn-action-color);
-  border: 1px solid var(--border-color);
-  padding: 8px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  margin-bottom: 12px;
-}
-
-.btn-action-full:hover {
-  background-color: rgba(255, 152, 0, 0.3);
-  border-color: var(--border-color);
+  background-color: var(--btn-hover);
 }
 
 .empty-state {
   display: none;
   text-align: center;
   padding: 32px 16px;
-  border: 1px dashed var(--border-color);
-  border-radius: var(--radius-md);
-  margin-top: 4px;
 }
 
 .empty-state p {
@@ -160,17 +175,37 @@ button {
 
 #url-list {
   list-style: none;
-  padding: 0;
+  padding: 10px;
   margin: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
   flex-grow: 1;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding-right: 8px;
+  padding-left: 13px;
+}
+
+#url-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+#url-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#url-list::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 4px;
+}
+
+#url-list.is-hovering::-webkit-scrollbar-thumb {
+  background-color: var(--btn-bg)
 }
 
 .url-item {
   background-color: var(--surface-color);
-  border: 1px solid var(--border-color);
   padding: 10px 12px;
   border-radius: var(--radius-md);
   cursor: grab;
@@ -178,13 +213,14 @@ button {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, padding 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, padding 0.2s ease;
   will-change: transform;
 }
 
 .url-item:hover {
   background-color: var(--surface-hover);
-  border-color: rgba(128, 128, 128, 0.3);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 .url-item.dragging {
@@ -197,9 +233,13 @@ button {
   align-items: stretch;
   gap: 10px;
   padding: 14px 12px;
-  border-color: var(--primary-color);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  background-color: var(--surface-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   cursor: default;
+}
+
+.url-item.highlighted {
+  background-color: var(--highlight-bg);
 }
 
 .edit-form {
@@ -235,35 +275,21 @@ button {
   margin-top: 4px;
 }
 
-.btn-save {
-  background-color: var(--primary-color);
-  color: #121212;
-  padding: 5px 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.btn-save:hover {
-  background-color: var(--primary-hover);
-}
-
 .btn-cancel {
   background-color: transparent;
   color: var(--text-secondary);
-  border: 1px solid var(--border-color);
   padding: 5px 10px;
   font-size: 0.75rem;
 }
 
 .btn-cancel:hover {
-  background-color: var(--surface-hover);
+  background-color: var(--btn-hover);
   color: var(--text-primary);
 }
 
-.url-item.highlighted {
-  border-color: var(--primary-color);
-  background-color: var(--highlight-bg);
-  box-shadow: 0 0 0 1px var(--primary-color);
+.btn-save {
+  padding: 5px 12px;
+  font-size: 0.75rem;
 }
 
 mark.search-match {
@@ -338,37 +364,30 @@ mark.search-match {
 }
 
 .copy-btn {
-  background-color: var(--surface-color);
+  background-color: var(--btn-bg);
   color: var(--text-primary);
-  border: 1px solid var(--border-color);
 }
 
 .copy-btn:hover {
-  background-color: var(--surface-hover);
+  background-color: var(--btn-hover);
 }
 
 .delete-btn {
-  background-color: var(--surface-color);
+  background-color: var(--btn-bg);
   color: var(--error-color);
-  border: 1px solid var(--border-color);
 }
 
 .delete-btn:hover {
   background-color: var(--error-hover-bg);
-  border-color: rgba(217, 48, 37, 0.3);
 }
 
 .search-container {
-  margin-top: 16px;
-  margin-left: -12px;
-  margin-right: -12px;
-  margin-bottom: -12px;
-  padding: 10px 12px;
-  border-top: 1px solid var(--border-color);
-  position: sticky;
-  bottom: -12px;
+  padding: 12px;
+  padding-top: 10px;
   background-color: var(--bg-color);
+  flex-shrink: 0;
   z-index: 10;
+  box-shadow: 0 -3px 6px var(--bg-color);
 }
 
 .search-input-wrapper {

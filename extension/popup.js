@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let urlsArray = [];
   let draggedElement = null;
   let editingId = null;
+  let isHovering;
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
     if (areaName === 'local' && changes.urls) {
@@ -114,6 +115,16 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderList() {
     urlList.innerHTML = '';
     const emptyState = document.getElementById('empty-state');
+
+    const mouseDetector = () => {
+      window.clearTimeout(isHovering);
+      urlList.classList.add('is-hovering');
+      isHovering = setTimeout(() => {
+        urlList.classList.remove('is-hovering');
+      }, 500);
+    }
+    urlList.addEventListener('mouseover', mouseDetector);
+    urlList.addEventListener('scroll', mouseDetector);
 
     if (urlsArray.length === 0) {
       if (emptyState) emptyState.style.display = 'block';
