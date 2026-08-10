@@ -15,10 +15,10 @@
 * **Save target link:** Right-click any link on a webpage to save it.
 * **Save raw URL:** Paste raw URLs directly into the extension's input field.
 * **Reordering:** Easily rearrange your saved list to fit your reading priority.
+* **Sorting:** Sort list based on URL or Label.
 * **Editing:** Rightclick to edit the added URLs.
 * **Searching:** Search keywords in the URLs added.
 * **Quick Actions:** Copy URLs to your clipboard or delete items with a single click.
-
 ---
 
 ## Installation & Setup
@@ -51,6 +51,7 @@ ForLater/
     ├── popup.html          # Main GUI HTML markup
     ├── popup.js            # Handles user interactions, list rendering, list editing and drag-and-drop sorting
     ├── popup.css           # Material styling
+    ├── utils.js            # Shared helper functions
     └── icons/              # Extension icons (16x16, 48x48, 128x128)
         ├── icon16.png
         ├── icon48.png
