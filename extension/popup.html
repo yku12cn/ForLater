@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ForLater</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 
@@ -11,7 +12,7 @@
   <div class="app-container">
     <div class="actions-container">
       <div class="add-container">
-        <input type="text" id="manual-url" placeholder="Paste URL here..." autocomplete="off" spellcheck="false">
+        <input type="text" id="manual-url" placeholder="Paste URL here..." aria-label="URL input" autocomplete="off" spellcheck="false">
         <button id="add-btn" class="btn-primary">Add</button>
       </div>
 
@@ -28,37 +29,37 @@
       <span>Save pages or links to read them later!</span>
     </div>
 
-    <ul id="url-list">
+    <ul id="url-list" aria-label="Saved links list">
     </ul>
 
     <div class="search-container">
       <div class="search-input-wrapper">
-        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"
+        <svg class="search-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"
           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <input type="text" id="search-input" placeholder="Search saved links..." autocomplete="off" spellcheck="false">
+        <input type="text" id="search-input" placeholder="Search saved links..." aria-label="Search saved links" autocomplete="off" spellcheck="false">
       </div>
 
       <div class="menu-container">
-        <button id="menu-btn" class="menu-btn" title="More actions">
-          <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"
+        <button id="menu-btn" class="menu-btn" title="More actions" aria-label="More actions" aria-expanded="false" aria-haspopup="true">
+          <svg class="menu-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"
             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="3" y1="6" x2="21" y2="6"></line>
             <line x1="3" y1="12" x2="21" y2="12"></line>
             <line x1="3" y1="18" x2="21" y2="18"></line>
           </svg>
         </button>
-        <div id="dropdown-menu" class="dropdown-menu hidden">
-          <button id="menu-save">Export list to JSON</button>
-          <button id="menu-load">Import list from JSON</button>
-          <button id="menu-sort-url">Sort by URL (A-Z)</button>
-          <button id="menu-sort-label">Sort by Label (A-Z)</button>
+        <div id="dropdown-menu" class="dropdown-menu hidden" role="menu">
+          <button id="menu-save" role="menuitem">Export list to JSON</button>
+          <button id="menu-load" role="menuitem">Import list from JSON</button>
+          <button id="menu-sort-url" role="menuitem">Sort by URL (A-Z)</button>
+          <button id="menu-sort-label" role="menuitem">Sort by Label (A-Z)</button>
         </div>
       </div>
     </div>
-    <input type="file" id="file-input" accept=".json" style="display: none;">
+    <input type="file" id="file-input" accept=".json" style="display: none;" aria-label="Import JSON File">
   </div>
 
   <template id="url-card-template">
@@ -69,24 +70,24 @@
       </div>
     </div>
     <div class="url-actions">
-      <button class="action-btn copy-btn">Copy</button>
-      <button class="action-btn delete-btn" title="Delete">&#x2715;</button>
+      <button class="action-btn copy-btn" aria-label="Copy URL">Copy</button>
+      <button class="action-btn delete-btn" title="Delete" aria-label="Delete link">&#x2715;</button>
     </div>
   </template>
 
   <template id="url-edit-template">
     <div class="edit-form">
       <div class="edit-input-group">
-        <span class="edit-label">Text</span>
-        <input type="text" class="edit-input text-input" placeholder="e.g. Documentation, Article Title...">
+        <label class="edit-label" for="edit-text-input">Text</label>
+        <input type="text" id="edit-text-input" class="edit-input text-input" placeholder="e.g. Documentation, Article Title...">
       </div>
       <div class="edit-input-group">
-        <span class="edit-label">URL</span>
-        <input type="text" class="edit-input url-input">
+        <label class="edit-label" for="edit-url-input">URL</label>
+        <input type="text" id="edit-url-input" class="edit-input url-input">
       </div>
       <div class="edit-actions">
         <button class="btn-cancel">Cancel</button>
-        <button class="btn-save">Save</button>
+        <button class="btn-save btn-primary">Save</button>
       </div>
     </div>
   </template>

@@ -72,9 +72,18 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 });
 
-async function saveUrl(url, title, isGeneric = true) {
-  const data = await chrome.storage.local.get({ urls: [] });
-  const urls = data.urls;
-  urls.push(createLinkItem(url, title, isGeneric));
-  await chrome.storage.local.set({ urls });
+let storageQueue = Promise.resolve();
+
+function saveUrl(url, title, isGeneric = true) {
+  const item = createLinkItem(url, title, isGeneric);
+  if (!item) return Promise.resolve();
+
+  storageQueue = storageQueue.then(async () => {
+    const data = await chrome.storage.local.get({ urls: [] });
+    const urls = data.urls || [];
+    urls.push(item);
+    await chrome.storage.local.set({ urls });
+  }).catch((err) => console.error("Failed to save URL to storage:", err));
+
+  return storageQueue;
 }

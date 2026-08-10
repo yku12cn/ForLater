@@ -21,14 +21,32 @@ export function normalizeUrl(urlString) {
 }
 
 export function ensureProtocol(url) {
-  return /^https?:\/\//i.test(url) ? url : `https://${url}`;
+  if (!url) return null;
+  const trimmed = url.trim();
+  try {
+    const parsed = new URL(trimmed);
+    if (['http:', 'https:'].includes(parsed.protocol)) {
+      return parsed.href;
+    }
+    return null;
+  } catch {
+    try {
+      const parsed = new URL(`https://${trimmed}`);
+      return parsed.href;
+    } catch {
+      return null;
+    }
+  }
 }
 
 export function createLinkItem(url, title = 'Saved Link', isGeneric = true) {
+  const validUrl = ensureProtocol(url);
+  if (!validUrl) return null;
+
   return {
     id: crypto.randomUUID(),
-    url: ensureProtocol(url),
-    title: title || url,
+    url: validUrl,
+    title: title || validUrl,
     isGeneric
   };
 }

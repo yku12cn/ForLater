@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let draggedElement = null;
   let editingId = null;
   let hoverTimeout = null;
+  let storageQueue = Promise.resolve();
 
   loadUrls();
   setupEventListeners();
@@ -58,16 +59,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addAllTabsBtn) addAllTabsBtn.addEventListener('click', handleAddAllTabs);
     openAllBtn.addEventListener('click', handleOpenAll);
 
-    if (searchInput) searchInput.addEventListener('input', applySearchFilter);
+    if (searchInput) searchInput.addEventListener('input', debounce(applySearchFilter, 150));
 
     menuBtn.addEventListener('click', (e) => {
       e.stopPropagation();
+      const isExpanded = menuBtn.getAttribute('aria-expanded') === 'true';
+      menuBtn.setAttribute('aria-expanded', String(!isExpanded));
       dropdownMenu.classList.toggle('hidden');
     });
 
     document.addEventListener('click', (e) => {
       if (!dropdownMenu.contains(e.target) && e.target !== menuBtn) {
         dropdownMenu.classList.add('hidden');
+        menuBtn.setAttribute('aria-expanded', 'false');
       }
     });
 
@@ -76,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
       fileInput.value = '';
       fileInput.click();
       dropdownMenu.classList.add('hidden');
+      menuBtn.setAttribute('aria-expanded', 'false');
     });
 
     fileInput.addEventListener('change', handleImport);
@@ -105,14 +110,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function addItems(newItems) {
-    if (!newItems.length) return;
-    urlsArray.push(...newItems);
+    const validItems = newItems.filter(Boolean);
+    if (!validItems.length) return;
+    urlsArray.push(...validItems);
     renderList();
     saveData();
   }
 
   function saveData() {
-    chrome.storage.local.set({ urls: urlsArray });
+    storageQueue = storageQueue.then(async () => {
+      await chrome.storage.local.set({ urls: urlsArray });
+    }).catch(err => console.error('Failed to save data:', err));
   }
 
   function loadUrls() {
@@ -180,6 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const faviconImg = template.querySelector('.favicon');
     faviconImg.src = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(item.url)}&size=32`;
+    faviconImg.alt = '';
 
     const titleA = template.querySelector('.url-title');
     titleA.href = item.url;
@@ -191,14 +200,16 @@ document.addEventListener('DOMContentLoaded', () => {
       chrome.tabs.create({ url: item.url, active: true });
     });
 
-    template.querySelector('.copy-btn').addEventListener('click', (e) => {
+    const copyBtn = template.querySelector('.copy-btn');
+    copyBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       navigator.clipboard.writeText(item.url);
-      e.target.textContent = 'Copied!';
-      setTimeout(() => (e.target.textContent = 'Copy'), 1500);
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => (copyBtn.textContent = 'Copy'), 1500);
     });
 
-    template.querySelector('.delete-btn').addEventListener('click', (e) => {
+    const deleteBtn = template.querySelector('.delete-btn');
+    deleteBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       urlsArray = urlsArray.filter(u => u.id !== item.id);
       renderList();
@@ -206,7 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     li.appendChild(template);
-
     li.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       editingId = item.id;
@@ -237,12 +247,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const itemIdx = urlsArray.findIndex(u => u.id === item.id);
       if (itemIdx !== -1) {
-        urlsArray[itemIdx].url = trimmedUrl;
-        urlsArray[itemIdx].title = trimmedLabel || 'Saved Link';
-        urlsArray[itemIdx].isGeneric = !trimmedLabel;
-        editingId = null;
-        renderList();
-        saveData();
+        const newItem = createLinkItem(trimmedUrl, trimmedLabel || 'Saved Link', !trimmedLabel);
+        if (newItem) {
+          urlsArray[itemIdx] = { ...newItem, id: item.id };
+          editingId = null;
+          renderList();
+          saveData();
+        } else {
+          alert('Please enter a valid URL.');
+        }
       }
     };
 
@@ -268,8 +281,13 @@ document.addEventListener('DOMContentLoaded', () => {
   function handleAdd() {
     const url = inputUrl.value.trim();
     if (url) {
-      addItems([createLinkItem(url)]);
-      inputUrl.value = '';
+      const item = createLinkItem(url);
+      if (item) {
+        addItems([item]);
+        inputUrl.value = '';
+      } else {
+        alert('Please enter a valid HTTP or HTTPS URL.');
+      }
     }
   }
 
@@ -281,7 +299,8 @@ document.addEventListener('DOMContentLoaded', () => {
           alert('Cannot save browser system pages.');
           return;
         }
-        addItems([createLinkItem(activeTab.url, activeTab.title, false)]);
+        const item = createLinkItem(activeTab.url, activeTab.title, false);
+        if (item) addItems([item]);
       }
     });
   }
@@ -291,7 +310,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!tabs?.length) return;
       const validItems = tabs
         .filter(tab => tab.url && !isRestrictedUrl(tab.url))
-        .map(tab => createLinkItem(tab.url, tab.title, false));
+        .map(tab => createLinkItem(tab.url, tab.title, false))
+        .filter(Boolean);
 
       addItems(validItems);
     });
@@ -349,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function extractDraggedLinkInfo(dataTransfer) {
     const rawUrl = dataTransfer.getData('text/uri-list') || dataTransfer.getData('text/plain');
-    if (!rawUrl || !/^https?:\/\//i.test(rawUrl.trim())) return null;
+    if (!rawUrl) return null;
 
     const cleanUrl = rawUrl.trim().split('\r\n')[0].split('\n')[0];
     let extractedTitle = null;
@@ -431,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (deltaY !== 0) {
         item.style.transition = 'none';
         item.style.transform = `translateY(${deltaY}px)`;
-        item.offsetHeight;
+        item.offsetHeight; // Force layout reflow
         item.style.transition = 'transform 0.2s ease';
         item.style.transform = '';
       }
@@ -459,6 +479,7 @@ document.addEventListener('DOMContentLoaded', () => {
     a.click();
     URL.revokeObjectURL(url);
     dropdownMenu.classList.add('hidden');
+    menuBtn.setAttribute('aria-expanded', 'false');
   }
 
   function handleImport(e) {
@@ -471,8 +492,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const importedData = JSON.parse(event.target.result);
         if (Array.isArray(importedData)) {
           urlsArray = importedData
-            .filter(item => item.url)
-            .map(item => createLinkItem(item.url, item.title, typeof item.isGeneric === 'boolean' ? item.isGeneric : true));
+            .map(item => item.url ? createLinkItem(item.url, item.title, typeof item.isGeneric === 'boolean' ? item.isGeneric : true) : null)
+            .filter(Boolean);
           renderList();
           saveData();
         } else {
@@ -490,5 +511,14 @@ document.addEventListener('DOMContentLoaded', () => {
     renderList();
     saveData();
     dropdownMenu.classList.add('hidden');
+    menuBtn.setAttribute('aria-expanded', 'false');
+  }
+
+  function debounce(fn, delay = 150) {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => fn(...args), delay);
+    };
   }
 });
