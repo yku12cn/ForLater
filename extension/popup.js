@@ -6,6 +6,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const openAllBtn = document.getElementById('open-all-btn');
   const inputUrl = document.getElementById('manual-url');
   const searchInput = document.getElementById('search-input');
+  const appContainer = document.querySelector('.app-container');
+  const menuBtn = document.getElementById('menu-btn');
+  const dropdownMenu = document.getElementById('dropdown-menu');
+  const menuSave = document.getElementById('menu-save');
+  const menuLoad = document.getElementById('menu-load');
+  const menuSortUrl = document.getElementById('menu-sort-url');
+  const menuSortLabel = document.getElementById('menu-sort-label');
+  const fileInput = document.getElementById('file-input');
 
   let urlsArray = [];
   let draggedElement = null;
@@ -339,6 +347,77 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  appContainer.addEventListener('dragover', (e) => {
+    if (!draggedElement) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+    }
+  });
+
+  function extractDraggedLinkInfo(dataTransfer) {
+    const rawUrl = dataTransfer.getData('text/uri-list') || dataTransfer.getData('text/plain');
+    if (!rawUrl || !/^https?:\/\//i.test(rawUrl.trim())) return null;
+
+    const cleanUrl = rawUrl.trim().split('\r\n')[0].split('\n')[0];
+    let extractedTitle = null;
+
+    const htmlData = dataTransfer.getData('text/html');
+    if (htmlData) {
+      try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlData, 'text/html');
+        const anchor = doc.querySelector('a');
+        if (anchor) {
+          extractedTitle = (anchor.innerText || anchor.getAttribute('aria-label') || anchor.title || '').trim();
+          if (!extractedTitle) {
+            const img = anchor.querySelector('img');
+            if (img) extractedTitle = (img.alt || img.title || '').trim();
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to parse dropped HTML data:', err);
+      }
+    }
+
+    if (!extractedTitle) {
+      const plainText = dataTransfer.getData('text/plain')?.trim();
+      if (plainText && plainText !== cleanUrl && !/^https?:\/\//i.test(plainText)) {
+        extractedTitle = plainText;
+      }
+    }
+
+    return {
+      url: cleanUrl,
+      title: extractedTitle || "Saved Link",
+      isGeneric: !extractedTitle
+    };
+  }
+
+  appContainer.addEventListener('dragover', (e) => {
+    if (!draggedElement) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+    }
+  });
+
+  appContainer.addEventListener('drop', (e) => {
+    if (!draggedElement) {
+      e.preventDefault();
+      const linkInfo = extractDraggedLinkInfo(e.dataTransfer);
+
+      if (linkInfo) {
+        urlsArray.push({
+          id: crypto.randomUUID(),
+          url: linkInfo.url,
+          title: linkInfo.title,
+          isGeneric: linkInfo.isGeneric
+        });
+        renderList();
+        saveData();
+      }
+    }
+  });
+
   addBtn.addEventListener('click', handleAdd);
   inputUrl.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') handleAdd();
@@ -491,5 +570,84 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   loadUrls();
+
+  menuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdownMenu.classList.toggle('hidden');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!dropdownMenu.contains(e.target) && e.target !== menuBtn) {
+      dropdownMenu.classList.add('hidden');
+    }
+  });
+
+  menuSave.addEventListener('click', () => {
+    const jsonString = JSON.stringify(urlsArray, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `forlater_backup_${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    dropdownMenu.classList.add('hidden');
+  });
+
+  menuLoad.addEventListener('click', () => {
+    fileInput.value = '';
+    fileInput.click();
+    dropdownMenu.classList.add('hidden');
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const importedData = JSON.parse(event.target.result);
+        if (Array.isArray(importedData)) {
+          urlsArray = importedData.map(item => ({
+            id: item.id || crypto.randomUUID(),
+            url: item.url || '',
+            title: item.title || item.url || 'Saved Link',
+            isGeneric: typeof item.isGeneric === 'boolean' ? item.isGeneric : true
+          })).filter(item => item.url !== '');
+
+          renderList();
+          saveData();
+        } else {
+          alert('Invalid JSON format: Expected an array of link objects.');
+        }
+      } catch (err) {
+        alert('Failed to parse JSON file: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  menuSortUrl.addEventListener('click', () => {
+    urlsArray.sort((a, b) => a.url.localeCompare(b.url));
+    renderList();
+    saveData();
+    dropdownMenu.classList.add('hidden');
+  });
+
+  menuSortLabel.addEventListener('click', () => {
+    urlsArray.sort((a, b) => {
+      const labelA = a.isGeneric ? a.url : a.title;
+      const labelB = b.isGeneric ? b.url : b.title;
+      return labelA.localeCompare(labelB);
+    });
+    renderList();
+    saveData();
+    dropdownMenu.classList.add('hidden');
+  });
 
 });

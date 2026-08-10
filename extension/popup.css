@@ -381,6 +381,9 @@ mark.search-match {
 }
 
 .search-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
   padding: 12px;
   padding-top: 5px;
   background-color: var(--bg-color);
@@ -393,7 +396,7 @@ mark.search-match {
   position: relative;
   display: flex;
   align-items: center;
-  width: 100%;
+  flex-grow: 1;
 }
 
 .search-icon {
@@ -408,4 +411,67 @@ mark.search-match {
 .search-input-wrapper input {
   width: 100%;
   padding-left: 32px;
+}
+
+.menu-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  color: var(--text-primary);
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  height: 34px;
+  width: 20px;
+}
+
+.menu-btn:hover {
+  background-color: var(--btn-hover);
+}
+
+.menu-icon {
+  flex-shrink: 0;
+  color: var(--text-primary);
+}
+
+.menu-btn:hover {
+  background-color: var(--btn-hover);
+}
+
+.dropdown-menu {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 8px;
+  background-color: var(--surface-color);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.dropdown-menu.hidden {
+  display: none;
+}
+
+.dropdown-menu button {
+  background: transparent;
+  color: var(--text-primary);
+  padding: 10px 16px;
+  text-align: left;
+  border-radius: 0;
+  font-weight: 500;
+}
+
+.dropdown-menu button:hover {
+  background-color: var(--surface-hover);
 }

@@ -40,7 +40,25 @@
         </svg>
         <input type="text" id="search-input" placeholder="Search saved links..." autocomplete="off" spellcheck="false">
       </div>
+
+      <div class="menu-container">
+        <button id="menu-btn" class="menu-btn" title="More actions">
+          <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <div id="dropdown-menu" class="dropdown-menu hidden">
+          <button id="menu-save">Export list to JSON</button>
+          <button id="menu-load">Import list from JSON</button>
+          <button id="menu-sort-url">Sort by URL (A-Z)</button>
+          <button id="menu-sort-label">Sort by Label (A-Z)</button>
+        </div>
+      </div>
     </div>
+    <input type="file" id="file-input" accept=".json" style="display: none;">
   </div>
 
   <template id="url-card-template">
