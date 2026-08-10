@@ -1,3 +1,5 @@
+import { isRestrictedUrl, createLinkItem } from './utils.js';
+
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: "ForLater-link",
@@ -39,7 +41,6 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
               return text || null;
             };
 
-            // 1. Try currently hovered element
             const hoveredElements = Array.from(document.querySelectorAll(':hover')).reverse();
             for (const hoveredEl of hoveredElements) {
               const anchor = hoveredEl.closest('a');
@@ -49,7 +50,6 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
               }
             }
 
-            // 2. Fallback: Search DOM for anchor tag matching target URL
             const matchingAnchor = Array.from(document.querySelectorAll('a')).find(a => a.href === urlToFind);
             return matchingAnchor ? extractText(matchingAnchor) : null;
           },
@@ -72,24 +72,9 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 });
 
-function isRestrictedUrl(url) {
-  if (!url) return true;
-  return (
-    url.startsWith("chrome://") ||
-    url.startsWith("edge://") ||
-    url.startsWith("about:") ||
-    url.startsWith("chrome-extension://")
-  );
-}
-
 async function saveUrl(url, title, isGeneric = true) {
   const data = await chrome.storage.local.get({ urls: [] });
   const urls = data.urls;
-  urls.push({
-    id: crypto.randomUUID(),
-    url: url,
-    title: title,
-    isGeneric: isGeneric
-  });
+  urls.push(createLinkItem(url, title, isGeneric));
   await chrome.storage.local.set({ urls });
 }

@@ -9,6 +9,8 @@
 
   --primary-color: #ff9800;
   --primary-hover: #e65100;
+  --primary-subtle: rgba(255, 152, 0, 0.15);
+  --primary-subtle-hover: rgba(255, 152, 0, 0.25);
 
   --text-primary: #202124;
   --text-secondary: #5f6368;
@@ -32,6 +34,9 @@
 
     --primary-color: #ff9800;
     --primary-hover: #f57c00;
+    --primary-subtle: rgba(255, 152, 0, 0.2);
+    --primary-subtle-hover: rgba(255, 152, 0, 0.3);
+
     --text-primary: #f0f0f0;
     --text-secondary: #a0a0a0;
     --error-color: #ff5252;
@@ -60,7 +65,7 @@ body {
   padding: 12px;
   padding-bottom: 2px;
   z-index: 10;
-  box-shadow: 0 3px 6px var(--bg-color);;
+  box-shadow: 0 3px 6px var(--bg-color);
 }
 
 .app-container {
@@ -70,13 +75,7 @@ body {
   overflow: hidden;
 }
 
-.add-container {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
-  flex-shrink: 0;
-}
-
+.add-container,
 .button-row {
   display: flex;
   gap: 8px;
@@ -86,7 +85,7 @@ body {
 
 .btn-action-full {
   width: 100%;
-  background-color: rgba(255, 152, 0, 0.2);
+  background-color: var(--primary-subtle);
   color: var(--primary-hover);
   border: none;
   padding: 8px;
@@ -96,7 +95,7 @@ body {
 }
 
 .btn-action-full:hover {
-  background-color: rgba(255, 152, 0, 0.3);
+  background-color: var(--primary-subtle-hover);
 }
 
 input[type="text"] {
@@ -200,7 +199,7 @@ button {
 }
 
 #url-list.is-hovering::-webkit-scrollbar-thumb {
-  background-color: var(--btn-bg)
+  background-color: var(--btn-bg);
 }
 
 .url-item {
@@ -438,10 +437,6 @@ mark.search-match {
 .menu-icon {
   flex-shrink: 0;
   color: var(--text-primary);
-}
-
-.menu-btn:hover {
-  background-color: var(--btn-hover);
 }
 
 .dropdown-menu {
