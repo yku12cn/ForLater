@@ -12,7 +12,8 @@
   <div class="app-container">
     <div class="actions-container">
       <div class="add-container">
-        <input type="text" id="manual-url" placeholder="Paste URL here..." aria-label="URL input" autocomplete="off" spellcheck="false">
+        <input type="text" id="manual-url" placeholder="Paste URL here..." aria-label="URL input" autocomplete="off"
+          spellcheck="false">
         <button id="add-btn" class="btn-primary">Add</button>
       </div>
 
@@ -34,18 +35,21 @@
 
     <div class="search-container">
       <div class="search-input-wrapper">
-        <svg class="search-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"
-          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg class="search-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16"
+          height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <input type="text" id="search-input" placeholder="Search saved links..." aria-label="Search saved links" autocomplete="off" spellcheck="false">
+        <input type="text" id="search-input" placeholder="Search saved links..." aria-label="Search saved links"
+          autocomplete="off" spellcheck="false">
       </div>
 
       <div class="menu-container">
-        <button id="menu-btn" class="menu-btn" title="More actions" aria-label="More actions" aria-expanded="false" aria-haspopup="true">
-          <svg class="menu-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"
-            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <button id="menu-btn" class="menu-btn" title="More actions" aria-label="More actions" aria-expanded="false"
+          aria-haspopup="true">
+          <svg class="menu-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16"
+            height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
             <line x1="3" y1="6" x2="21" y2="6"></line>
             <line x1="3" y1="12" x2="21" y2="12"></line>
             <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -56,6 +60,8 @@
           <button id="menu-load" role="menuitem">Import list from JSON</button>
           <button id="menu-sort-url" role="menuitem">Sort by URL (A-Z)</button>
           <button id="menu-sort-label" role="menuitem">Sort by Label (A-Z)</button>
+          <button id="menu-remove-duplicates" role="menuitem">Remove Duplicates</button>
+          <button id="menu-delete-all" class="menu-danger" role="menuitem">Delete All Entries</button>
         </div>
       </div>
     </div>
@@ -79,7 +85,8 @@
     <div class="edit-form">
       <div class="edit-input-group">
         <label class="edit-label" for="edit-text-input">Text</label>
-        <input type="text" id="edit-text-input" class="edit-input text-input" placeholder="e.g. Documentation, Article Title...">
+        <input type="text" id="edit-text-input" class="edit-input text-input"
+          placeholder="e.g. Documentation, Article Title...">
       </div>
       <div class="edit-input-group">
         <label class="edit-label" for="edit-url-input">URL</label>
@@ -93,6 +100,16 @@
   </template>
 
   <script type="module" src="popup.js"></script>
+  <div id="confirm-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <h3 id="modal-title">Delete All Entries?</h3>
+      <p id="modal-desc">Step 1 of 2: Are you sure you want to delete all saved links?</p>
+      <div class="modal-actions">
+        <button id="modal-btn-left"></button>
+        <button id="modal-btn-right"></button>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>

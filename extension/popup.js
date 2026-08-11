@@ -15,14 +15,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const menuLoad = document.getElementById('menu-load');
   const menuSortUrl = document.getElementById('menu-sort-url');
   const menuSortLabel = document.getElementById('menu-sort-label');
+  const menuRemoveDuplicates = document.getElementById('menu-remove-duplicates');
+  const menuDeleteAll = document.getElementById('menu-delete-all');
   const fileInput = document.getElementById('file-input');
   const emptyState = document.getElementById('empty-state');
+  const confirmModal = document.getElementById('confirm-modal');
+  const modalTitle = document.getElementById('modal-title');
+  const modalDesc = document.getElementById('modal-desc');
+  const modalBtnLeft = document.getElementById('modal-btn-left');
+  const modalBtnRight = document.getElementById('modal-btn-right');
 
   let urlsArray = [];
   let draggedElement = null;
   let editingId = null;
   let hoverTimeout = null;
   let storageQueue = Promise.resolve();
+  let confirmStep = 1;
 
   loadUrls();
   setupEventListeners();
@@ -91,6 +99,13 @@ document.addEventListener('DOMContentLoaded', () => {
       return labelA.localeCompare(labelB);
     }));
 
+    menuRemoveDuplicates.addEventListener('click', handleRemoveDuplicates);
+    menuDeleteAll.addEventListener('click', openDeleteAllModal);
+
+    confirmModal.addEventListener('click', (e) => {
+      if (e.target === confirmModal) closeModal();
+    });
+
     appContainer.addEventListener('dragover', (e) => {
       if (!draggedElement) {
         e.preventDefault();
@@ -107,6 +122,76 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     });
+  }
+
+  function handleRemoveDuplicates() {
+    dropdownMenu.classList.add('hidden');
+    menuBtn.setAttribute('aria-expanded', 'false');
+
+    const seenUrls = new Set();
+    const initialLength = urlsArray.length;
+
+    urlsArray = urlsArray.filter((item) => {
+      const normalized = normalizeUrl(item.url);
+      if (seenUrls.has(normalized)) {
+        return false;
+      }
+      seenUrls.add(normalized);
+      return true;
+    });
+
+    if (urlsArray.length !== initialLength) {
+      renderList();
+      saveData();
+    }
+  }
+
+  function openDeleteAllModal() {
+    dropdownMenu.classList.add('hidden');
+    menuBtn.setAttribute('aria-expanded', 'false');
+
+    if (!urlsArray.length) return;
+
+    confirmStep = 1;
+    renderModalStep();
+    confirmModal.classList.remove('hidden');
+  }
+
+  function closeModal() {
+    confirmModal.classList.add('hidden');
+    confirmStep = 1;
+  }
+
+  function renderModalStep() {
+    if (confirmStep === 1) {
+      modalTitle.textContent = 'Delete All Entries?';
+      modalDesc.textContent = 'Step 1 of 2: Are you sure you want to delete all saved links?';
+      modalBtnLeft.textContent = 'Cancel';
+      modalBtnLeft.className = 'btn-secondary';
+      modalBtnLeft.onclick = closeModal;
+
+      modalBtnRight.textContent = 'Delete All';
+      modalBtnRight.className = 'btn-danger';
+      modalBtnRight.onclick = () => {
+        confirmStep = 2;
+        renderModalStep();
+      };
+    } else if (confirmStep === 2) {
+      modalTitle.textContent = 'Final Confirmation';
+      modalDesc.textContent = 'Step 2 of 2: This action cannot be undone. Confirm deletion?';
+      modalBtnLeft.textContent = 'Delete All';
+      modalBtnLeft.className = 'btn-danger';
+      modalBtnLeft.onclick = () => {
+        urlsArray = [];
+        renderList();
+        saveData();
+        closeModal();
+      };
+
+      modalBtnRight.textContent = 'Cancel';
+      modalBtnRight.className = 'btn-secondary';
+      modalBtnRight.onclick = closeModal;
+    }
   }
 
   function addItems(newItems) {
